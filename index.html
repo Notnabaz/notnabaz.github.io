@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gym Tracker - Push #1</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff"/>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("Service Worker Registered"));
+    }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    h1, h2 { text-align: center; }
+    .exercise-container {
+      background: white; padding: 15px; margin-bottom: 20px;
+      border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+    input, select { width: 100%; padding: 6px; }
+    .week-selector { text-align: center; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Push #1 - Strength Focus</h1>
+  <div class="week-selector">
+    <label for="week">Select Week: </label>
+    <select id="week" onchange="switchWeek(this.value)">
+      <option value="week1">Week 1</option>
+      <option value="week2">Week 2</option>
+      <option value="week3">Week 3</option>
+    </select>
+  </div>
+  <div id="tracker"></div>
+  <script>
+    const exercises = [
+      { name: "Barbell Bench Press", alternatives: ["Smith Machine Bench Press", "Dumbbell Bench Press"] },
+      { name: "Overhead Press", alternatives: ["Dumbbell Shoulder Press", "Smith Machine OHP"] },
+      { name: "Incline Machine Press", alternatives: ["Incline Dumbbell Press", "Incline Barbell Press"] },
+      { name: "Lateral Raises", alternatives: ["Cable Lateral Raises", "Machine Lateral Raises"] },
+      { name: "Triceps Dips", alternatives: ["Triceps Pushdown", "Overhead Cable Extension"] },
+      { name: "Cable Triceps Pushdown", alternatives: ["Rope Pushdown", "Straight Bar Pushdown"] }
+    ];
+
+    const sets = 3;
+    const weeks = ["week1", "week2", "week3"];
+
+    function generateTracker(week) {
+      let html = '';
+      exercises.forEach((exercise, index) => {
+        const keyBase = `${week}_ex${index}`;
+        html += `<div class="exercise-container">
+          <h2>${exercise.name}</h2>
+          <label>Substitute:</label>
+          <select onchange="save('${keyBase}_alt', this.value)">
+            ${exercise.alternatives.map(opt =>
+              `<option value="${opt}" ${getData(`${keyBase}_alt`) === opt ? 'selected' : ''}>${opt}</option>`
+            ).join('')}
+          </select>
+          <table><tr><th>Set</th><th>Reps</th><th>Weight (kg)</th><th>RPE</th></tr>`;
+        for (let i = 1; i <= sets; i++) {
+          html += `<tr>
+            <td>${i}</td>
+            <td><input type="number" value="${getData(`${keyBase}_reps${i}`) || ''}" 
+              onchange="save('${keyBase}_reps${i}', this.value)" /></td>
+            <td><input type="number" value="${getData(`${keyBase}_wt${i}`) || ''}" 
+              onchange="save('${keyBase}_wt${i}', this.value)" /></td>
+            <td><input type="number" value="${getData(`${keyBase}_rpe${i}`) || ''}" 
+              onchange="save('${keyBase}_rpe${i}', this.value)" step="0.5" min="5" max="10" /></td>
+          </tr>`;
+        }
+        html += `</table></div>`;
+      });
+      document.getElementById("tracker").innerHTML = html;
+    }
+
+    function getData(key) {
+      return localStorage.getItem(key) || '';
+    }
+
+    function save(key, val) {
+      localStorage.setItem(key, val);
+    }
+
+    function switchWeek(week) {
+      generateTracker(week);
+    }
+
+    // Load default week
+    window.onload = () => {
+      document.getElementById("week").value = "week1";
+      generateTracker("week1");
+    };
+  </script>
+</body>
+</html>
